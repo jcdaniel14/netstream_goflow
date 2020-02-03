@@ -3,16 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"net/http"
 	"os"
 	"runtime"
 
 	"github.com/cloudflare/goflow/transport"
 	"github.com/cloudflare/goflow/utils"
 	log "github.com/sirupsen/logrus"
-
-	"net/http"
-
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"sync"
 )
@@ -42,7 +40,7 @@ var (
 	LogFmt   = flag.String("logfmt", "normal", "Log formatter")
 
 	EnableKafka = flag.Bool("kafka", true, "Enable Kafka")
-	MetricsAddr = flag.String("metrics.addr", ":8080", "Metrics address")
+	MetricsAddr = flag.String("metrics.addr", ":8081", "Metrics address")
 	MetricsPath = flag.String("metrics.path", "/metrics", "Metrics path")
 
 	TemplatePath = flag.String("templates.path", "/templates", "NetFlow/IPFIX templates list")
@@ -61,20 +59,6 @@ func httpServer(state *utils.StateNetFlow) {
 }
 
 func main() {
-	//ctx := context.Background()
-	//Eclient, err := elastic.NewClient(elastic.SetURL("http://172.24.4.154:9200"))
-	//if err != nil {
-	//	// Handle error
-	//	panic(err)
-	//}
-	// Ping the Elasticsearch server to get e.g. the version number
-	//info, code, err := Eclient.Ping("http://172.24.4.154:9200").Do(ctx)
-	//if err != nil {
-	//	// Handle error
-	//	panic(err)
-	//}
-	//fmt.Printf("Elasticsearch returned with code %d and version %s\n", code, info.Version.Number)
-
 	flag.Parse()
 
 	if *Version {
@@ -109,7 +93,6 @@ func main() {
 	}
 
 	go httpServer(sNF)
-
 	if *EnableKafka {
 		kafkaState, err := transport.StartKafkaProducerFromArgs(log.StandardLogger())
 		if err != nil {
